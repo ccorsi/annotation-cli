@@ -19,6 +19,8 @@ package org.valhalla.cli;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -457,6 +459,24 @@ public class Options {
 						return new AtomicInteger(Integer.parseInt(value));
 					}
 
+				};
+			} else if (type == BigInteger.class) {
+				return new ConvertCommand() {
+
+					@Override
+					public Object execute(String value) throws Exception {
+						return new BigInteger(value);
+					}
+					
+				};
+			} else if (type == BigDecimal.class) {
+				return new ConvertCommand() {
+
+					@Override
+					public Object execute(String value) throws Exception {
+						return new BigDecimal(value);
+					}
+					
 				};
 			} else {
 				throw new RuntimeException("Unknown class type "

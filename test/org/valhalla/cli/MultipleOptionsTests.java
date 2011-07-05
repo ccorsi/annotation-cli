@@ -16,47 +16,50 @@
  */
 package org.valhalla.cli;
 
+import java.math.BigInteger;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-
 /**
  * @author Claudio Corsi
- *
+ * 
  */
-public class EmbeddedTests extends AbstractOptionsTestSupport {
-	
-	private Embedded embedded;
+public class MultipleOptionsTests extends AbstractOptionsTestSupport {
+
+	private Simple simple;
 
 	@Before
-	public void createEmbedded() {
-		embedded = new Embedded();
-	}
-	
-	@Test
-	public void testEmbeddedOption() throws OptionsException {
-		executeOptions(new String[] { "-A5" }, new Object[] { embedded }, new String[0]);
-		Assert.assertEquals("Embedded value was incorrect", 5, embedded.getEmbeddedIntValue());
-	}
-	
-	@Test
-	public void testEmbeddedDefaultValueOption() throws OptionsException {
-		executeOptions(new String[0], new Object[] { embedded }, new String[0]);
-		Assert.assertEquals("Embedded value was incorrect", 10, embedded.getEmbeddedDefaultIntValue());
+	public void createSimple() {
+		this.simple = new Simple();
 	}
 
-	@Test(expected = OptionsException.class)
-	public void testInvalidEmbeddedOption() throws OptionsException {
-		executeOptions(new String[] { "-A10.5" }, new Object[] { embedded }, new String[0]);
-	}
-	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.valhalla.cli.AbstractOptionsTestSupport#getClasses()
 	 */
 	@Override
 	Class<?>[] getClasses() {
-		return new Class<?>[] { Embedded.class };
+		return new Class<?>[] { Simple.class };
 	}
 
+	@Test
+	public void testMultipleOptions() throws OptionsException {
+		executeOptions(new String[] { "-QTZ", "11501234", "true" },
+				new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The BigInteger value was not properly",
+				new BigInteger("11501234"), simple.getBigIntegerValue());
+		Assert.assertTrue("The boolean value was not set to true",
+				simple.getPrimitiveBooleanValue());
+		Assert.assertTrue("The trace option was not set",
+				simple.isNoValueOption());
+	}
+	
+	@Test(expected = OptionsException.class)
+	public void testMultipleOptionsInvalid() throws OptionsException {
+		executeOptions(new String[] { "-QTZ", "11501234" },
+				new Object[] { this.simple }, new String[0]);		
+	}
 }
