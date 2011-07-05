@@ -25,13 +25,30 @@ import java.lang.annotation.Target;
 /**
  * This annotation is used to state which of the methods will be used in command
  * line processing. These annotated method have the option to define short and
- * long names.
+ * long names. <p/>
  * 
  * The defined names can then expect a parameter depending if the annotated
- * method expects a parameter value or not.
+ * method expects a parameter value or not.<p/>
  * 
  * There are three options that a parameter can have is regular, embedded or
- * property like.
+ * property like.</p>
+ * 
+ * There are four types of options that can be defined using this annotation. <p/>
+ * 
+ * <ul>
+ * 	<li>short name type</li>
+ * 	<li>long name type</li>
+ *  <li>property type</li>
+ *  <li>embedded type</li>
+ * </ul>
+ * 
+ * Short names are defined as -T. <p/>
+ * 
+ * Long names are defined as --trace. <p/>
+ * 
+ * Property type names are defined as name=value. <p/>
+ * 
+ * Embedded type names are defined as -O2, where the 2 is embedded within the command line parameter. <p/>
  * 
  * @author Claudio Corsi
  * 
@@ -44,14 +61,14 @@ public @interface Option {
 	/**
 	 * This is the short name of the option. The option is prefixed with -
 	 * 
-	 * @return
+	 * @return The short name, else ' '
 	 */
-	String shortName() default "";
+	char shortName() default ' ';
 
 	/**
 	 * This is the long name of the option. The option is prefixed with --
 	 * 
-	 * @return
+	 * @return The long name, else ""
 	 */
 	String longName() default "";
 
@@ -59,7 +76,7 @@ public @interface Option {
 	 * The value is included as part of the option name. For instance, the
 	 * option is O then an embedded option would given as -O2.
 	 * 
-	 * @return
+	 * @return true, if this is an embedded option, default is false
 	 */
 	boolean embeddedValue() default false;
 
@@ -78,7 +95,7 @@ public @interface Option {
 	/**
 	 * This is the default value that this option will use
 	 * 
-	 * @return
+	 * @return The default value for this option, default is ""
 	 */
 	String defaultValue() default "";
 
@@ -86,7 +103,7 @@ public @interface Option {
 	 * This is the description of this option for the given method associated to
 	 * the class that the option will be set to.
 	 * 
-	 * @return
+	 * @return The description of this command line option
 	 */
 	String description() default "";
 

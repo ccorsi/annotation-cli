@@ -17,6 +17,9 @@
 package org.valhalla.cli;
 
 /**
+ * This exception is thrown whenever there is an exception or an error while processing the
+ * command line options.
+ * 
  * @author Claudio Corsi
  *
  */
@@ -27,13 +30,22 @@ public class OptionsException extends Exception {
 	 */
 	private static final long serialVersionUID = -4270307173617437780L;
 
+	/**
+	 * This constructor will be passed the error message stating what was wrong when
+	 * processing the options.
+	 * 
+	 * @param message The error message
+	 */
 	public OptionsException(String message) {
 		super(message);
 	}
 
 	/**
-	 * @param string
-	 * @param e
+	 * This constructor will define the error message and the exception that was
+	 * caught during the processing of the command line options.
+	 * 
+	 * @param message The error message
+	 * @param e  The exception that was caught
 	 */
 	public OptionsException(String message, Exception e) {
 		super(message, e);

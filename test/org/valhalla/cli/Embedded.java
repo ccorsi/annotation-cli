@@ -16,39 +16,33 @@
  */
 package org.valhalla.cli;
 
+import org.valhalla.cli.annotations.Option;
 
 /**
- * This interface is used to generate a command used to apply a value to a given
- * object. </p>
- * 
  * @author Claudio Corsi
- * 
+ *
  */
-public interface OptionCommand {
-
-	/**
-	 * This method will apply the passed value to the passed object.  The
-	 * value is passed as a string and can be converted into the appropriate
-	 * value by this method. 
-	 * 
-	 * @param object The object that is being applied the pass value to
-	 * @param value The value that will be passed to the object
-	 * @throws Exception If we are unable to apply the passed value to the
-	 * 			passed object
-	 */
-	void execute(Object object, String value) throws Exception;
-
-	/**
-	 * @return
-	 */
-	boolean hasValue();
+public class Embedded {
 	
-	/**
-	 * This method will return the class that this command will be able to apply
-	 * the passed value to.
-	 * 
-	 * @return The class that this command works with
-	 */
-	Class<?> forClass();
+	private int level;
+	private int defIntValue;
+
+	@Option(shortName = 'A', embeddedValue = true)
+	public void embeddedIntValue(int level) {
+		this.level = level;
+	}
+
+	@Option(shortName = 'B', embeddedValue = true, defaultValue = "10")
+	public void embeddedDefaultIntValue(int defIntValue) {
+		this.defIntValue = defIntValue;
+	}
+	
+	public int getEmbeddedIntValue() {
+		return this.level;
+	}
+	
+	public int getEmbeddedDefaultIntValue() {
+		return this.defIntValue;
+	}
 	
 }

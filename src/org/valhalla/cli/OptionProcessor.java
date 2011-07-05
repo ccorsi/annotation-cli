@@ -19,6 +19,9 @@ package org.valhalla.cli;
 import org.valhalla.cli.annotations.Option;
 
 /**
+ * This class is responsible in managing the applying of the value to a given instance
+ * for a given option.
+ * 
  * @author Claudio Corsi
  *
  */
@@ -28,26 +31,52 @@ public class OptionProcessor {
 	private Option option;
 
 	/**
-	 * @param command
-	 * @param option
+	 * This constructors expects the option command that is used to apply
+	 * the value with the given option.  This option processor will then
+	 * be passed an object and a value that will be passed to the appropriate
+	 * method of the object.
+	 * 
+	 * @param command  The command used to apply the passed value to an instance
+	 * @param option  The option associated to the particular command line option
+	 *                being applied
 	 */
 	public OptionProcessor(OptionCommand command, Option option) {
 		this.command = command;
 		this.option  = option;
 	}
 
+	/**
+	 * The option annotation associated with this given option processor instance
+	 * 
+	 * @return This processor associated option
+	 * 
+	 */
 	public Option getOption() {
 		return this.option;
 	}
 	
+	/**
+	 * @return
+	 */
 	public Class<?> forClass() {
 		return this.command.forClass();
 	}
 	
+	/**
+	 * @return
+	 */
 	public boolean hasValue() {
 		return this.command.hasValue();
 	}
 	
+	/**
+	 * This method will apply the passed value to the appropriate method of the 
+	 * passed object.
+	 * 
+	 * @param object The object that this option value will be applied to
+	 * @param value The value that will be passed to the object
+	 * @throws Exception  Thrown if unable to pass the passed value to the passed object
+	 */
 	public void process(Object object, String value) throws Exception {
 		this.command.execute(object, value);
 	}

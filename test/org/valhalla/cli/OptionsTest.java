@@ -146,12 +146,12 @@ public class OptionsTest {
 
 	class DuplicateOption {
 
-		@Option(shortName = "a")
+		@Option(shortName = 'a')
 		public void oneA() {
 
 		}
 
-		@Option(shortName = "a")
+		@Option(shortName = 'a')
 		public void duplicateA() {
 
 		}
@@ -165,7 +165,7 @@ public class OptionsTest {
 		private int defaultValue = -1;
 		private ParameterValue value;
 
-		@Option(shortName = "C")
+		@Option(shortName = 'C')
 		public void setParameterValue(ParameterValue value) {
 			this.value = value;
 		}
@@ -174,7 +174,7 @@ public class OptionsTest {
 			return this.value;
 		}
 		
-		@Option(shortName = "D", defaultValue = "100")
+		@Option(shortName = 'D', defaultValue = "100")
 		public void useDefaultValue(int value) {
 			this.defaultValue = value;
 		}
@@ -183,12 +183,12 @@ public class OptionsTest {
 			return this.defaultValue;
 		}
 
-		@Option(shortName = "T", longName = "trace")
+		@Option(shortName = 'T', longName = "trace")
 		public void noValueOption() {
 			this.trace = true;
 		}
 
-		@Option(shortName = "B", longName = "boolean")
+		@Option(shortName = 'B', longName = "boolean")
 		public void BooleanOption(Boolean value) {
 			this.Bool = value;
 		}
@@ -197,7 +197,7 @@ public class OptionsTest {
 			return this.Bool;
 		}
 
-		@Option(shortName = "Z", longName = "zillow")
+		@Option(shortName = 'Z', longName = "zillow")
 		public void booleanOption(boolean value) {
 			this.bool = value;
 		}

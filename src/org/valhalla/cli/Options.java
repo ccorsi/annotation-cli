@@ -31,6 +31,17 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.valhalla.cli.annotations.Option;
 
 /**
+ * This is the main class used to process options that are available for a user
+ * to pass on the command line for a given application. This allows the user to
+ * provide one or more classes that define the command line options that a given
+ * application can be passed on the command line. </p>
+ * 
+ * The options are defined using the Option annotation. The developer defines
+ * one or more classes that will be passed options on the command line. Usually
+ * a developer would create the command line options and then process these
+ * options about call the appropriate method to set the option and/or set the
+ * appropriate field. </p>
+ * 
  * @author Claudio Corsi
  * 
  */
@@ -50,6 +61,10 @@ public class Options {
 	private Map<String, OptionProcessor> propsNames = new HashMap<String, OptionProcessor>();
 	private Collection<Option> options = new LinkedList<Option>();
 
+	/**
+	 * @param cliOptions
+	 * @throws OptionsException
+	 */
 	public Options(Class<?> cliOptions[]) throws OptionsException {
 		// Process all of the classes.
 		for (Class<?> clz : cliOptions) {
@@ -57,6 +72,12 @@ public class Options {
 		}
 	}
 
+	/**
+	 * @param args
+	 * @param objects
+	 * @return
+	 * @throws OptionsException
+	 */
 	public String[] processArguements(String[] args, Object[] objects)
 			throws OptionsException {
 		// Process all default values
@@ -83,9 +104,28 @@ public class Options {
 					OptionProcessor processor = this.longNames.get(name);
 					idx = processOption(args, objects, idx, name, processor);
 				} else {
-					String name = arg.substring(1);
+					String name = arg.substring(1); // This can be multiple
+													// short names or an
+													// embedded name.
 					OptionProcessor processor = this.shortNames.get(name);
-					idx = processOption(args, objects, idx, name, processor);
+					if (processor != null) {
+						idx = processOption(args, objects, idx, name, processor);
+					} else {
+						processor = this.shortNames.get(name.substring(0, 1));
+						if (processor != null
+								&& processor.getOption().embeddedValue()) {
+							idx = processOption(args, objects, idx, name,
+									processor);
+						} else {
+							// Process all short names
+							for (int innerIdx = 0; innerIdx < name.length(); innerIdx++) {
+								processor = this.shortNames.get(name.substring(
+										innerIdx, innerIdx + 1));
+								idx = processOption(args, objects, idx,
+										name.substring(0, 1), processor);
+							}
+						}
+					}
 				}
 			} else if (arg.indexOf('=') > -1) {
 				String name = arg.substring(0, arg.indexOf('='));
@@ -151,7 +191,12 @@ public class Options {
 		}
 		try {
 			if (processor.hasValue()) {
-				String value = args[++idx];
+				String value = null;
+				if (!processor.getOption().embeddedValue()) {
+					value = args[++idx];
+				} else {
+					value = name.substring(1);
+				}
 				processor.process(object, value);
 			} else {
 				processor.process(object, null);
@@ -262,7 +307,8 @@ public class Options {
 				String shortName;
 				OptionProcessor optionProcessor = new OptionProcessor(command,
 						option);
-				if ((shortName = option.shortName()).length() > 0) {
+				if (option.shortName() != ' ') {
+					shortName = new String(new char[] { option.shortName() });
 					if (option.propertyValue()) {
 						if (propsNames.put(shortName, optionProcessor) != null) {
 							throw new OptionsException("Option " + shortName
