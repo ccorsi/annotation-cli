@@ -1,0 +1,6 @@
+
+- Split up the OptionsTest into separate test classes that tests the different primitive and wrapper features of this project
+- Extract the Simple class from the OptionsTest test into its own source file to allow other tests to use this class
+- Create a utility class that will be used by the tests to generate the required options instance and/or Simple instance. 
+  This can also be used to perform the expected assert checks by the different tests.
+- Are there other parameter types that need to be introduced?
