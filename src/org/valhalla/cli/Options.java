@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.cli;
+package org.valhalla.cli;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.cli.annotations.Option;
+import org.valhalla.cli.annotations.Option;
 
 /**
  * @author Claudio Corsi
@@ -304,7 +304,7 @@ public class Options {
 	}
 
 	static Collection<Class<?>> primitiveTypes = new HashSet<Class<?>>();
-	
+
 	static {
 		primitiveTypes.add(Byte.TYPE);
 		primitiveTypes.add(Short.TYPE);
@@ -313,7 +313,7 @@ public class Options {
 		primitiveTypes.add(Double.TYPE);
 		primitiveTypes.add(Float.TYPE);
 	}
-	
+
 	/**
 	 * @param type
 	 * @return
@@ -337,7 +337,8 @@ public class Options {
 				}
 
 			};
-		} else if (Number.class.isAssignableFrom(type) || primitiveTypes.contains(type)) {
+		} else if (Number.class.isAssignableFrom(type)
+				|| primitiveTypes.contains(type)) {
 			// This is a Number type instance...
 			if (type == Integer.class || type == Integer.TYPE) {
 				return new ConvertCommand() {
@@ -433,9 +434,8 @@ public class Options {
 				@Override
 				public Object execute(String value) throws Exception {
 					// We are assuming that whatever class instance is being
-					// created it
-					// contains a constructor that expects a String as a
-					// parameter.
+					// created it contains a constructor that expects a String
+					// as a parameter.
 					Constructor<?> constructor = type
 							.getConstructor(String.class);
 					return constructor.newInstance(value);

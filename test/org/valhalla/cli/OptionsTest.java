@@ -14,15 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.cli;
+package org.valhalla.cli;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.commons.cli.annotations.Option;
 import org.junit.Test;
+import org.valhalla.cli.Options;
+import org.valhalla.cli.OptionsException;
+import org.valhalla.cli.annotations.Option;
 
 /**
  * @author Claudio Corsi
@@ -48,7 +50,7 @@ public class OptionsTest {
 
 	/**
 	 * Test method for
-	 * {@link org.apache.commons.cli.Options#processArguements(java.lang.String[], java.lang.Object[])}
+	 * {@link org.valhalla.cli.Options#processArguements(java.lang.String[], java.lang.Object[])}
 	 * .
 	 * 
 	 * @throws OptionsException
@@ -71,7 +73,7 @@ public class OptionsTest {
 
 	/**
 	 * Test method for
-	 * {@link org.apache.commons.cli.Options#Options(java.util.Collection)}.
+	 * {@link org.valhalla.cli.Options#Options(java.util.Collection)}.
 	 * 
 	 * @throws OptionsException
 	 */

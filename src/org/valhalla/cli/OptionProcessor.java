@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.cli;
+package org.valhalla.cli;
 
-import org.apache.commons.cli.annotations.Option;
+import org.valhalla.cli.annotations.Option;
 
 /**
  * @author Claudio Corsi
