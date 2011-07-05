@@ -1,0 +1,10 @@
+
+This is a simple project that I created that allows you to define command line arguments using annotations 
+and be able to have the them set implicitly without have the application do it itself.  
+
+The other object was to be able to set multiple instances and not be relegated to a single instance.  This 
+removes the need to have the application concern itself to setting these values.
+
+The final objective was to be able to set objects besides the primitive types their wrappers, String and 
+atomic integer and long instances.  This can be done if the object has a string value constructor.
+ 
