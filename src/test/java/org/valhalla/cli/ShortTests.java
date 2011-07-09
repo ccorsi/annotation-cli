@@ -66,6 +66,18 @@ public class ShortTests extends AbstractOptionsTestSupport {
 	}
 	
 	@Test
+	public void testPrimitiveShortEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--sName=43" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The short value was not properly", 43, simple.getPrimitiveShortValue());
+	}
+	
+	@Test
+	public void testShortEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--gName=33" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Short value was not properly", Short.valueOf((short) 33), simple.getShortValue());
+	}
+	
+	@Test
 	public void testPrimitiveShortDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple }, new String[0]);
 		Assert.assertEquals("The Short default value was not set", 3, simple.getPrimitiveShortValue());

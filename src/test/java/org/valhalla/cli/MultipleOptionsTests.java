@@ -57,9 +57,28 @@ public class MultipleOptionsTests extends AbstractOptionsTestSupport {
 				simple.isNoValueOption());
 	}
 	
+	@Test(expected=OptionsException.class)
+	public void testMultipleOptionsWithEmbeddedOption() throws OptionsException {
+		executeOptions(new String[] { "-QA5TZ", "11501234", "true" },
+				new Object[] { this.simple }, new String[0]);
+	}
+	
 	@Test(expected = OptionsException.class)
 	public void testMultipleOptionsInvalid() throws OptionsException {
 		executeOptions(new String[] { "-QTZ", "11501234" },
 				new Object[] { this.simple }, new String[0]);		
 	}
+
+	@Test
+	public void testMultipleOptionsAndNonOptionValues() throws OptionsException {
+		executeOptions(new String[] { "-QT", "11501234", "value", "-Z", "true" },
+				new Object[] { this.simple }, new String[] { "value" });
+		Assert.assertEquals("The BigInteger value was not properly",
+				new BigInteger("11501234"), simple.getBigIntegerValue());
+		Assert.assertTrue("The boolean value was not set to true",
+				simple.getPrimitiveBooleanValue());
+		Assert.assertTrue("The trace option was not set",
+				simple.isNoValueOption());
+	}
+	
 }

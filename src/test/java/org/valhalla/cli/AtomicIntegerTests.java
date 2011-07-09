@@ -64,6 +64,15 @@ public class AtomicIntegerTests extends AbstractOptionsTestSupport {
 	}
 
 	@Test
+	public void testAtomicIntegerEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--oName=35" },
+				new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The AtomicInteger value was not properly",
+				new AtomicInteger(35).intValue(), simple
+						.getAtomicIntegerValue().intValue());
+	}
+
+	@Test
 	public void testAtomicIntegerDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple },
 				new String[0]);

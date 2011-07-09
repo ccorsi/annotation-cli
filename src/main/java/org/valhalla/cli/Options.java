@@ -101,54 +101,127 @@ public class Options {
 		for (int idx = 0; idx < args.length; idx++) {
 			String arg = args[idx];
 			if (arg.charAt(0) == '-') {
+				Object object = null;
+				String value = null;
 				if (arg.charAt(1) == '-') {
 					String name = arg.substring(2);
 					OptionProcessor processor = this.longNames.get(name);
-					idx = processOption(args, objects, idx, name, processor);
+					if (processor == null) {
+						// Possible long name as --foo=bar, look for = character
+						int eq = name.indexOf('=');
+						if (eq > 0 && eq != (name.length() - 1)) {
+							processor = this.longNames.get(name
+									.substring(0, eq));
+							// The value is embedded with the long name
+							value = name.substring(eq + 1);
+						}
+					} else {
+						if (processor.hasValue()) {
+							idx++;
+							if (idx == args.length) {
+								throw new OptionsException(
+										"Missing value for option " + name);
+							}
+							value = args[idx];
+						}
+					}
+					object = checkAndReturnTypeInstance(objects, name,
+							processor);
+					// Pass the name from the option longName value.
+					applyValue(processor.getOption().longName(), processor,
+							object, value);
 				} else {
-					String name = arg.substring(1); // This can be multiple
-													// short names or an
-													// embedded name.
+					// This can be multiple short names or an embedded name.
+					String name = arg.substring(1);
 					OptionProcessor processor = this.shortNames.get(name);
 					if (processor != null) {
-						idx = processOption(args, objects, idx, name, processor);
+						object = checkAndReturnTypeInstance(objects, name,
+								processor);
+						if (processor.hasValue()) {
+							if (!processor.getOption().embeddedValue()) {
+								idx++;
+								if (idx == args.length) {
+									throw new OptionsException(
+											"Missing value for option " + name);
+								}
+								value = args[idx];
+							} else {
+								// The value is part of the passed option
+								if (name.length() < 2) {
+									throw new OptionsException(
+											"Missing embedded value for option "
+													+ name);
+								}
+								value = name.substring(1);
+							}
+						}
+						applyValue(name, processor, object, value);
 					} else {
-						processor = this.shortNames.get(name.substring(0, 1));
-						if (processor != null
-								&& processor.getOption().embeddedValue()) {
-							idx = processOption(args, objects, idx, name,
-									processor);
+						String embeddedName = name.substring(0, 1);
+						processor = this.shortNames.get(embeddedName);
+						object = checkAndReturnTypeInstance(objects,
+								embeddedName, processor);
+						if (processor.getOption().embeddedValue()) {
+							// The value is part of the passed option
+							if (name.length() < 2) {
+								throw new OptionsException(
+										"Missing embedded value for option "
+												+ name);
+							}
+							value = name.substring(1);
+							applyValue(embeddedName, processor, object, value);
 						} else {
+							if (processor.hasValue()) {
+								idx++;
+								if (idx == args.length) {
+									throw new OptionsException(
+											"Missing value for option "
+													+ embeddedName);
+								}
+								value = args[idx];
+							}
+							applyValue(embeddedName, processor, object, value);
 							// Process all short names
-							for (int innerIdx = 0; innerIdx < name.length(); innerIdx++) {
-								processor = this.shortNames.get(name.substring(
-										innerIdx, innerIdx + 1));
-								idx = processOption(args, objects, idx,
-										name.substring(0, 1), processor);
+							for (int innerIdx = 1; innerIdx < name.length(); innerIdx++) {
+								embeddedName = name.substring(innerIdx,
+										innerIdx + 1);
+								processor = this.shortNames.get(embeddedName);
+								object = checkAndReturnTypeInstance(objects,
+										embeddedName, processor);
+								if (processor.hasValue()) {
+									if (processor.getOption().embeddedValue()) {
+										// This is not supported
+										throw new OptionsException(
+												"Embedded value not supported for embedded value when passed as multiple options command line parameter "
+														+ embeddedName
+														+ " used as part command line options "
+														+ name);
+									}
+									idx++;
+									if (idx == args.length) {
+										throw new OptionsException(
+												"Missing value for option "
+														+ embeddedName);
+									}
+									value = args[idx];
+								}
+								applyValue(embeddedName, processor, object,
+										value);
 							}
 						}
 					}
 				}
 			} else if (arg.indexOf('=') > -1) {
-				String name = arg.substring(0, arg.indexOf('='));
+				int eqIdx = arg.indexOf('=');
+				String name = arg.substring(0, eqIdx);
 				OptionProcessor processor = this.propsNames.get(name);
-				if (processor == null) {
-					throw new OptionsException("No available option for "
-							+ name);
+				Object object = checkAndReturnTypeInstance(objects, name,
+						processor);
+				eqIdx++; // Move to the next index
+				if (eqIdx == arg.length()) {
+					throw new OptionsException("The passed option does not contain a value for option " + name);
 				}
-				Class<?> type = processor.forClass();
-				Object object = null;
-				for (Object o : objects) {
-					if (o.getClass() == type) {
-						object = o;
-						break;
-					}
-				}
-				if (object == null) {
-					throw new OptionsException(
-							"No object available to set option " + name);
-				}
-				String value = arg.substring(arg.indexOf('=') + 1);
+				String value = arg.substring(eqIdx);
 				try {
 					processor.process(object, value);
 				} catch (Exception e) {
@@ -164,16 +237,31 @@ public class Options {
 	}
 
 	/**
-	 * @param args
+	 * @param longName
+	 * @param processor
+	 * @param object
+	 * @param value
+	 * @throws OptionsException
+	 */
+	private void applyValue(String name, OptionProcessor processor,
+			Object object, String value) throws OptionsException {
+		try {
+			processor.process(object, value);
+		} catch (Exception e) {
+			throw new OptionsException(
+					"An exception was thrown when processing option " + name, e);
+		}
+	}
+
+	/**
 	 * @param objects
-	 * @param idx
 	 * @param name
 	 * @param processor
 	 * @return
 	 * @throws OptionsException
 	 */
-	private int processOption(String[] args, Object[] objects, int idx,
-			String name, OptionProcessor processor) throws OptionsException {
+	private Object checkAndReturnTypeInstance(Object[] objects, String name,
+			OptionProcessor processor) throws OptionsException {
 		if (processor == null) {
 			throw new OptionsException("No available option for " + name);
 		}
@@ -191,23 +279,7 @@ public class Options {
 			throw new OptionsException("No object available to set option "
 					+ name);
 		}
-		try {
-			if (processor.hasValue()) {
-				String value = null;
-				if (!processor.getOption().embeddedValue()) {
-					value = args[++idx];
-				} else {
-					value = name.substring(1);
-				}
-				processor.process(object, value);
-			} else {
-				processor.process(object, null);
-			}
-		} catch (Exception e) {
-			throw new OptionsException(
-					"An exception was thrown when processing option " + name, e);
-		}
-		return idx;
+		return object;
 	}
 
 	/**
@@ -467,7 +539,7 @@ public class Options {
 					public Object execute(String value) throws Exception {
 						return new BigInteger(value);
 					}
-					
+
 				};
 			} else if (type == BigDecimal.class) {
 				return new ConvertCommand() {
@@ -476,7 +548,7 @@ public class Options {
 					public Object execute(String value) throws Exception {
 						return new BigDecimal(value);
 					}
-					
+
 				};
 			} else {
 				throw new RuntimeException("Unknown class type "

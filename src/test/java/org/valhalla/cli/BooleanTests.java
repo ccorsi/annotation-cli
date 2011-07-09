@@ -66,6 +66,18 @@ public class BooleanTests extends AbstractOptionsTestSupport {
 	}
 	
 	@Test
+	public void testPrimitiveBooleanEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--zillow=false" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Boolean value was not properly", false, simple.getPrimitiveBooleanValue());
+	}
+	
+	@Test
+	public void testBooleanEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--boolean=false" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Boolean value was not properly", Boolean.FALSE, simple.getBooleanValue());
+	}
+	
+	@Test
 	public void testPrimitiveBooleanDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple }, new String[0]);
 		Assert.assertEquals("The Boolean default value was not set", true, simple.getPrimitiveBooleanValue());

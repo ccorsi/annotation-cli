@@ -62,6 +62,15 @@ public class BigDecimalTests extends AbstractOptionsTestSupport {
 	}
 
 	@Test
+	public void testBigDecimalEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--rName=35001234567890.1234567890" },
+				new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The BigDecimal value was not properly",
+				new BigDecimal("35001234567890.1234567890"), simple
+						.getBigDecimalValue());
+	}
+
+	@Test
 	public void testBigDecimalDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple },
 				new String[0]);

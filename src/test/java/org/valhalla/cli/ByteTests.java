@@ -66,6 +66,18 @@ public class ByteTests extends AbstractOptionsTestSupport {
 	}
 	
 	@Test
+	public void testPrimitiveByteEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--aName=125" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Byte value was not properly", 125, simple.getPrimitiveByteValue());
+	}
+	
+	@Test
+	public void testByteEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--mName=35" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Byte value was not properly", Byte.valueOf((byte) 35), simple.getByteValue());
+	}
+	
+	@Test
 	public void testPrimitiveByteDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple }, new String[0]);
 		Assert.assertEquals("The Byte default value was not set", 75, simple.getPrimitiveByteValue());

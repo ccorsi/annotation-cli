@@ -67,6 +67,18 @@ public class IntegerTests extends AbstractOptionsTestSupport {
 	}
 	
 	@Test
+	public void testPrimitiveIntegerEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--iName=43" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The integer value was not properly", 43, simple.getPrimitiveIntegerValue());
+	}
+	
+	@Test
+	public void testIntegerEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--eName=33" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The integer value was not properly", Integer.valueOf(33), simple.getIntegerValue());
+	}
+	
+	@Test
 	public void testPrimitiveIntegerDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple }, new String[0]);
 		Assert.assertEquals("The integer value was not properly", 3, simple.getPrimitiveIntegerValue());

@@ -66,6 +66,18 @@ public class DoubleTests extends AbstractOptionsTestSupport {
 	}
 	
 	@Test
+	public void testPrimitiveDoubleEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--kName=3.5" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Double value was not properly", 3.5, simple.getPrimitiveDoubleValue(), 0.5);
+	}
+	
+	@Test
+	public void testDoubleEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--nName=4.5" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Double value was not properly", Double.valueOf(4.5), simple.getDoubleValue());
+	}
+	
+	@Test
 	public void testPrimitiveDoubleDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple }, new String[0]);
 		Assert.assertEquals("The Double default value was not set", 4.5, simple.getPrimitiveDoubleValue(), .5);

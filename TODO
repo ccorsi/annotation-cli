@@ -3,7 +3,8 @@
 - Extract the Simple class from the OptionsTest test into its own source file to allow other tests to use this class [done]
 - Create a utility class that will be used by the tests to generate the required options instance and/or Simple instance. 
   This can also be used to perform the expected assert checks by the different tests.
-- Are there other parameter types that need to be introduced?
+- Are there other parameter types that need to be introduced? [added --option=value]
 - Improve the README file.
 - Add more javadoc that includes a package.html file with information on how to use this library
 - Add an examples directory
+- Add a usage method to the Options class that will print all of the option to standard options 

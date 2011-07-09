@@ -62,6 +62,15 @@ public class BigIntegerTests extends AbstractOptionsTestSupport {
 	}
 
 	@Test
+	public void testBigIntegerEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--qName=35001234567890" },
+				new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The BigInteger value was not properly",
+				new BigInteger("35001234567890"), simple
+						.getBigIntegerValue());
+	}
+
+	@Test
 	public void testBigIntegerDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple },
 				new String[0]);

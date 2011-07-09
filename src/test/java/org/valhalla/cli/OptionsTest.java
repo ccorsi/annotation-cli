@@ -98,7 +98,17 @@ public class OptionsTest {
 				"--zillow", "true" }, new Object[] { simple });
 		assertTrue("Returned arguments is not empty", args.length == 0);
 		assertTrue("The trace option was not set", simple.isNoValueOption());
-		assertTrue("The zillion option was not set", simple.getPrimitiveBooleanValue());
+		assertTrue("The zillion option was not set",
+				simple.getPrimitiveBooleanValue());
+	}
+
+	@Test(expected=OptionsException.class)
+	public void testLongNamesOptionsWithMissingEmbeddedValue()
+			throws OptionsException {
+		Options options = new Options(new Class<?>[] { Simple.class });
+		Simple simple = new Simple();
+		options.processArguements(new String[] { "--trace", "--zillow=" },
+				new Object[] { simple });
 	}
 
 	@Test
@@ -132,16 +142,18 @@ public class OptionsTest {
 		assertEquals("The property option was not correctly", "default",
 				simple.getPropertyOptionWithDefault());
 	}
-	
+
 	@Test
 	public void testParameterValue() throws OptionsException {
 		Options options = new Options(new Class<?>[] { Simple.class });
 		Simple simple = new Simple();
-		String args[] = options.processArguements(new String[] { "-C", "ParameterValue" }, new Object[] { simple });
+		String args[] = options.processArguements(new String[] { "-C",
+				"ParameterValue" }, new Object[] { simple });
 		assertTrue("Returned arguments is not empty", args.length == 0);
 		ParameterValue value = simple.getParameterValue();
 		assertNotNull("The parameter value was not set", value);
-		assertEquals("Patameter value value was not set to ParameterValue", "ParameterValue", value.getValue());
+		assertEquals("Patameter value value was not set to ParameterValue",
+				"ParameterValue", value.getValue());
 	}
 
 	class DuplicateOption {

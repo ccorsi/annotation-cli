@@ -67,6 +67,18 @@ public class LongTests extends AbstractOptionsTestSupport {
 	}
 	
 	@Test
+	public void testPrimitiveLongEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--lName=43" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Long value was not properly", 43, simple.getPrimitiveLongValue());
+	}
+	
+	@Test
+	public void testLongEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--fName=33" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Long value was not properly", Long.valueOf(33), simple.getLongValue());
+	}
+	
+	@Test
 	public void testPrimitiveLongDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple }, new String[0]);
 		Assert.assertEquals("The long default value was not set", 3, simple.getPrimitiveLongValue());

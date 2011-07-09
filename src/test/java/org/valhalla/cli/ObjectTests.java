@@ -63,6 +63,15 @@ public class ObjectTests extends AbstractOptionsTestSupport {
 	}
 
 	@Test
+	public void testURIEmbeddedLongNameOption() throws OptionsException, URISyntaxException {
+		executeOptions(new String[] { "--uName=http://www.w3c.org" },
+				new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The URI value was not properly",
+				new URI("http://www.w3c.org"), simple
+						.getURIValue());
+	}
+
+	@Test
 	public void testURIDefaultOption() throws OptionsException, URISyntaxException {
 		executeOptions(new String[0], new Object[] { this.simple },
 				new String[0]);

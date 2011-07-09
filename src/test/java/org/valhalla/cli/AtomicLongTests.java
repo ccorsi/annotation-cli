@@ -62,6 +62,15 @@ public class AtomicLongTests extends AbstractOptionsTestSupport {
 	}
 
 	@Test
+	public void testAtomicLongEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--pName=3500" },
+				new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The AtomicLong value was not properly",
+				new AtomicLong(3500).intValue(), simple
+						.getAtomicLongValue().intValue());
+	}
+
+	@Test
 	public void testAtomicLongDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple },
 				new String[0]);

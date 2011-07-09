@@ -66,6 +66,18 @@ public class FloatTests extends AbstractOptionsTestSupport {
 	}
 	
 	@Test
+	public void testPrimitiveFloatEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--hName=4.5" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Float value was not properly", 4.5, simple.getPrimitiveFloatValue(), 0.5);
+	}
+	
+	@Test
+	public void testFloatEmbeddedLongNameOption() throws OptionsException {
+		executeOptions(new String[] { "--jName=3.5" }, new Object[] { this.simple }, new String[0]);
+		Assert.assertEquals("The Float value was not properly", Float.valueOf((float) 3.5), simple.getFloatValue());
+	}
+	
+	@Test
 	public void testPrimitiveFloatDefaultOption() throws OptionsException {
 		executeOptions(new String[0], new Object[] { this.simple }, new String[0]);
 		Assert.assertEquals("The Float default value was not set", 1.5, simple.getPrimitiveFloatValue(), .5);
