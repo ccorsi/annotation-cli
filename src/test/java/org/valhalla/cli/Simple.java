@@ -179,7 +179,8 @@ public 	class Simple {
 		return this.defaultValue;
 	}
 
-	@Option(shortName = 'T', longName = "trace")
+	@Option(shortName = 'T', longName = "trace",
+			description="This option will enable the tracing option")
 	public void noValueOption() {
 		this.trace = true;
 	}
@@ -188,7 +189,8 @@ public 	class Simple {
 		return this.trace;
 	}
 
-	@Option(shortName = 'B', longName = "boolean", defaultValue = "true")
+	@Option(shortName = 'B', longName = "boolean", defaultValue = "true",
+			description="This option expected a boolean and contain a default value of true")
 	public void setBooleanValue(Boolean value) {
 		this.Bool = value;
 	}
@@ -197,7 +199,8 @@ public 	class Simple {
 		return this.Bool;
 	}
 
-	@Option(shortName = 'Z', longName = "zillow", defaultValue = "true")
+	@Option(shortName = 'Z', longName = "zillow", defaultValue = "true",
+			description="This option expects a boolean with a default value of true")
 	public void setPrimitiveBooleanValue(boolean value) {
 		this.bool = value;
 	}
@@ -206,7 +209,8 @@ public 	class Simple {
 		return this.bool;
 	}
 
-	@Option(longName = "foo", propertyValue = true)
+	@Option(longName = "foo", propertyValue = true,
+			description="This is an example of a property value")
 	public void properyOption(String value) {
 		this.propertyOption = value;
 	}
@@ -215,7 +219,8 @@ public 	class Simple {
 		return this.propertyOption;
 	}
 
-	@Option(longName = "default", propertyValue = true, defaultValue = "default")
+	@Option(longName = "default", propertyValue = true, defaultValue = "default",
+			description="This is a property option with a default of default")
 	public void properyOptionWithDefault(String value) {
 		this.propertyOption = value;
 	}
@@ -233,7 +238,8 @@ public 	class Simple {
 		return this.atomicInteger;
 	}
 
-	@Option(shortName = 'P', longName = "pName", defaultValue = "10100")
+	@Option(shortName = 'P', longName = "pName", defaultValue = "10100",
+			description="This is a long option with a default value of 10100")
 	public void setAtomicLongValue(AtomicLong value) {
 		this.atomicLong = value;
 	}

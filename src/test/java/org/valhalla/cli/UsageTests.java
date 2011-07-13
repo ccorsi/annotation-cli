@@ -16,39 +16,33 @@
  */
 package org.valhalla.cli;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 /**
- * This exception is thrown whenever there is an exception or an error while processing the
- * command line options.
- * 
  * @author Claudio Corsi
- *
+ * 
  */
-public class OptionsException extends Exception {
-	
-	/**
-	 * Generated serial version
-	 */
-	private static final long serialVersionUID = -4270307173617437780L;
+public class UsageTests extends AbstractOptionsTestSupport {
 
-	/**
-	 * This constructor will be passed the error message stating what was wrong when
-	 * processing the options.
-	 * 
-	 * @param message The error message
-	 */
-	public OptionsException(String message) {
-		super(message);
+	private static String lineSep = System.getProperty("line.separator");
+
+	@Override
+	Class<?>[] getClasses() {
+		return new Class<?>[] { OptionImplOne.class, OptionImplTwo.class };
 	}
 
-	/**
-	 * This constructor will define the error message and the exception that was
-	 * caught during the processing of the command line options.
-	 * 
-	 * @param message The error message
-	 * @param e  The exception that was caught
-	 */
-	public OptionsException(String message, Exception e) {
-		super(message, e);
+	@Test
+	public void testUsageInfo() throws OptionsException {
+		String expectedUsageMessage = "usage: java org.valhalla.cli.MainClass simple command line string"
+				+ lineSep
+				+ "  -A	This is an A option"
+				+ lineSep
+				+ "  --bOption[=value| value]	This is the bOption option"
+				+ lineSep;
+		String usageMessage = this.options.usage(MainClass.class,
+				"simple command line string");
+		Assert.assertEquals("Usage string is incorrect", expectedUsageMessage,
+				usageMessage);
 	}
-
 }

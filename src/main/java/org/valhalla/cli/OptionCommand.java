@@ -39,7 +39,9 @@ public interface OptionCommand {
 	void execute(Object object, String value) throws Exception;
 
 	/**
-	 * @return
+	 * This is used to determine if this instance Option expects a value
+	 * 
+	 * @return true if this instance Option expects a value, else false
 	 */
 	boolean hasValue();
 	

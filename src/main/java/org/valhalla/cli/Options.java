@@ -17,16 +17,17 @@
 package org.valhalla.cli;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -50,10 +51,26 @@ import org.valhalla.cli.annotations.Option;
 public class Options {
 
 	/**
+	 * This interface is used by the Options instance to convert the string
+	 * value that is passed as part of the command line parameter list into the
+	 * required type that the processor instance will require when applying the
+	 * update to the object.
+	 * 
 	 * @author Claudio Corsi
 	 * 
 	 */
 	public interface ConvertCommand {
+		/**
+		 * This method will convert the passed string value into the required
+		 * type instance.
+		 * 
+		 * @param value
+		 *            The value to be converted
+		 * @return An instance of the converted type
+		 * @throws Exception
+		 *             If there was an issue while trying to convert the passed
+		 *             value into the expected type instance.
+		 */
 		Object execute(String value) throws Exception;
 	}
 
@@ -62,10 +79,16 @@ public class Options {
 	private Map<Class<?>, Collection<OptionProcessor>> defaultValues = new HashMap<Class<?>, Collection<OptionProcessor>>();
 	private Map<String, OptionProcessor> propsNames = new HashMap<String, OptionProcessor>();
 	private Collection<Option> options = new LinkedList<Option>();
+	private Collection<Map.Entry<Method, Option>> methodOptions = new LinkedList<Map.Entry<Method, Option>>();
 
 	/**
+	 * This constructor will expect an array of classes that contains methods
+	 * annotated with the Option annotation.
+	 * 
 	 * @param cliOptions
+	 *            Array of classes with Option annotation
 	 * @throws OptionsException
+	 *             If there is any inconsistency when processing the class array
 	 */
 	public Options(Class<?> cliOptions[]) throws OptionsException {
 		// Process all of the classes.
@@ -75,10 +98,20 @@ public class Options {
 	}
 
 	/**
+	 * This method will process the command line parameters and apply the
+	 * results to the passed objects. It will return all remaining parameters
+	 * that were not processed. Those remaining arguments allow the calling
+	 * method to not concern itself with purging any options from the argument
+	 * list.
+	 * 
 	 * @param args
+	 *            The command line parameters
 	 * @param objects
-	 * @return
+	 *            The instances that the passed arguments will be applied to
+	 * @return An array of the remaining arguments that were not processed
 	 * @throws OptionsException
+	 *             If any inconsistency happened while processing the command
+	 *             line parameters
 	 */
 	public String[] processArguements(String[] args, Object[] objects)
 			throws OptionsException {
@@ -219,7 +252,9 @@ public class Options {
 						processor);
 				eqIdx++; // Move to the next index
 				if (eqIdx == arg.length()) {
-					throw new OptionsException("The passed option does not contain a value for option " + name);
+					throw new OptionsException(
+							"The passed option does not contain a value for option "
+									+ name);
 				}
 				String value = arg.substring(eqIdx);
 				try {
@@ -237,11 +272,20 @@ public class Options {
 	}
 
 	/**
-	 * @param longName
+	 * The method will apply the value to the passed object using the passed
+	 * processor. The name is only used to generate the exception if anything
+	 * went wrong.
+	 * 
+	 * @param name
+	 *            The name of the option that is being processed
 	 * @param processor
+	 *            The processor instance used to apply the value
 	 * @param object
+	 *            The object that the value will be applied to
 	 * @param value
+	 *            The value that will be applied to the object
 	 * @throws OptionsException
+	 *             If any issues occurred when applying the value to the object
 	 */
 	private void applyValue(String name, OptionProcessor processor,
 			Object object, String value) throws OptionsException {
@@ -254,11 +298,21 @@ public class Options {
 	}
 
 	/**
+	 * This method will check that the passed processor is non-null. It will
+	 * then determine which of the passed instances in the array of objects that
+	 * the processor instance will require.
+	 * 
 	 * @param objects
+	 *            Array of objects containing the object used by the passed
+	 *            processor
 	 * @param name
+	 *            The name of the option that the processor will process
 	 * @param processor
-	 * @return
+	 *            The processor used to apply the option for the returned object
+	 * @return The object that will be updated
 	 * @throws OptionsException
+	 *             If the passed processor is null or if there is no instance
+	 *             that can be used by the processor
 	 */
 	private Object checkAndReturnTypeInstance(Object[] objects, String name,
 			OptionProcessor processor) throws OptionsException {
@@ -266,10 +320,8 @@ public class Options {
 			throw new OptionsException("No available option for " + name);
 		}
 		Class<?> type = processor.forClass();
-		// System.out.println("type: " + type);
 		Object object = null;
 		for (Object o : objects) {
-			// System.out.println("Comparing with type " + o.getClass());
 			if (o.getClass() == type) {
 				object = o;
 				break;
@@ -283,8 +335,14 @@ public class Options {
 	}
 
 	/**
+	 * This method will extract all methods with the Option annotation and
+	 * generate an internal data structure used to process the passed command
+	 * line parameters.
+	 * 
 	 * @param clz
+	 *            The class that contains method with the Option annotation
 	 * @throws OptionsException
+	 *             If there is any inconsistency while processing the class
 	 */
 	private void processCLIOptions(Class<?> clz) throws OptionsException {
 		for (Method method : clz.getMethods()) {
@@ -419,6 +477,34 @@ public class Options {
 					defaultOptions.add(optionProcessor);
 				}
 				options.add(option);
+				methodOptions.add(new Map.Entry<Method, Option>() {
+
+					private Method method;
+					private Option option;
+
+					@Override
+					public Method getKey() {
+						return this.method;
+					}
+
+					public Entry<Method, Option> setFields(Method method,
+							Option option) {
+						this.method = method;
+						this.option = option;
+						return this;
+					}
+
+					@Override
+					public Option getValue() {
+						return this.option;
+					}
+
+					@Override
+					public Option setValue(Option arg0) {
+						return this.option;
+					}
+
+				}.setFields(method, option));
 			}
 		}
 	}
@@ -435,19 +521,15 @@ public class Options {
 	}
 
 	/**
+	 * This method will generate an instance of a ConvertCommand instance that
+	 * will transform the string value into the passed type class.
+	 * 
 	 * @param type
-	 * @return
-	 * @throws NoSuchMethodException
-	 * @throws SecurityException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws IllegalArgumentException
+	 *            The type of instance that the ConvertCommand execute method
+	 *            will return
+	 * @return A ConvertCommand instance
 	 */
-	private ConvertCommand convert(Class<?> type) throws SecurityException,
-			NoSuchMethodException, IllegalArgumentException,
-			InstantiationException, IllegalAccessException,
-			InvocationTargetException {
+	private ConvertCommand convert(Class<?> type) {
 		if (type == String.class) {
 			return new ConvertCommand() {
 
@@ -588,7 +670,92 @@ public class Options {
 		}
 	}
 
+	/**
+	 * This constructor will expect a collection of class instances with method
+	 * annotated with the Option annotation.
+	 * 
+	 * @param cliOptions
+	 *            Collection of class to process
+	 * @throws OptionsException
+	 *             If there was any inconsistency when processing the collection
+	 *             of classes
+	 */
 	public Options(Collection<Class<?>> cliOptions) throws OptionsException {
 		this(cliOptions.toArray(new Class<?>[0]));
+	}
+
+	/**
+	 * This method is used to display the usage command with all of the
+	 * available options. It will return a string that will contain a printable
+	 * string with consistent spacing.
+	 * 
+	 * @param mainClass
+	 *            The main class that a user calls and passed the command line
+	 *            parameters to.
+	 * @param message
+	 *            The message that will be displayed explaining parameter line
+	 *            choices.
+	 * @return A formatted string with all of the options available
+	 */
+	public String usage(Class<?> mainClass, String message) {
+		String lineSep = System.getProperty("line.separator");
+		StringBuffer str = new StringBuffer();
+		str.append("usage: java ").append(mainClass.getName()).append(" ")
+				.append(message).append(lineSep);
+		for (Entry<Method, Option> methodOption : this.methodOptions) {
+			Option option = methodOption.getValue();
+			Method method = methodOption.getKey();
+			boolean started = false;
+			if (option.shortName() != ' ') {
+				started = true;
+				str.append("  ");
+				if (!option.propertyValue()) {
+					str.append("-").append(option.shortName());
+					if (option.embeddedValue()) {
+						str.append("[value]");
+					} else {
+						if (method.getParameterTypes().length > 0) {
+							str.append(" [value]");
+						}
+					}
+				} else {
+					str.append(option.shortName()).append("=[value]");
+				}
+			}
+			if (option.longName().length() > 0) {
+				if (!started) {
+					str.append("  ");
+				} else {
+					str.append(", ");
+				}
+				if (!option.propertyValue()) {
+					str.append("--").append(option.longName());
+					// Determine if a value is expected.
+					if (method.getParameterTypes().length > 0) {
+						str.append("[=value| value]");
+					}
+				} else {
+					str.append(option.longName()).append("=[value]");
+				}
+			}
+			if (option.defaultValue().length() > 0) {
+				str.append(", default=").append(option.defaultValue());
+			}
+			if (option.description().length() > 0) {
+				str.append('\t').append(option.description());
+			}
+			str.append(lineSep);
+		}
+		return str.toString();
+	}
+
+	/**
+	 * This method will return all of the Options that where part of the passed
+	 * array of classes.
+	 * 
+	 * @return Collection containing all defined Option annotations
+	 */
+	public Collection<Option> getOptions() {
+		return Collections.unmodifiableCollection(this.options);
 	}
 }

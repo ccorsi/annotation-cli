@@ -19,7 +19,7 @@ package org.valhalla.cli;
 import org.valhalla.cli.annotations.Option;
 
 /**
- * This class is responsible in managing the applying of the value to a given instance
+ * This class is responsible for managing the application of the value to a given instance
  * for a given option.
  * 
  * @author Claudio Corsi
@@ -56,14 +56,23 @@ public class OptionProcessor {
 	}
 	
 	/**
-	 * @return
+	 * This method will return the type of instance that this processor expects when applying the
+	 * this instance associated option
+	 * 
+	 * @return The expect type of object passed to the process method.
+	 * 
+	 * @see #process(Object, String)
 	 */
 	public Class<?> forClass() {
 		return this.command.forClass();
 	}
 	
 	/**
-	 * @return
+	 * This method will inform the caller is this option expects to have a value associated with it.
+	 * 
+	 * @return true, if a value is expect else false
+	 * 
+	 * @see #process(Object, String)
 	 */
 	public boolean hasValue() {
 		return this.command.hasValue();
@@ -81,7 +90,11 @@ public class OptionProcessor {
 		this.command.execute(object, value);
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * This method will return detailed information about this processor for debugging purposes.
+	 * 
+	 * @return String containing debugging information
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
