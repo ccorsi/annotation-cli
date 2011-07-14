@@ -107,4 +107,12 @@ public @interface Option {
 	 */
 	String description() default "";
 
+	/**
+	 * This is used to state that this option is required. The Options instance
+	 * will determine if all of the required options have been satisfied and will
+	 * raise an exception is one was not applied.
+	 * 
+	 * @return true, if this option is required
+	 */
+	boolean required() default false;
 }

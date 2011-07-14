@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -80,6 +81,7 @@ public class Options {
 	private Map<String, OptionProcessor> propsNames = new HashMap<String, OptionProcessor>();
 	private Collection<Option> options = new LinkedList<Option>();
 	private Collection<Map.Entry<Method, Option>> methodOptions = new LinkedList<Map.Entry<Method, Option>>();
+	private Collection<Option> requiredOptions = new LinkedList<Option>();
 
 	/**
 	 * This constructor will expect an array of classes that contains methods
@@ -119,17 +121,23 @@ public class Options {
 		for (Object object : objects) {
 			Collection<OptionProcessor> defaultOptions = defaultValues
 					.get(object.getClass());
-			for (OptionProcessor option : defaultOptions) {
-				try {
-					option.process(object, option.getOption().defaultValue());
-				} catch (Exception e) {
-					throw new OptionsException(
-							"An exception was raised while trying to set the default value for option "
-									+ option.getOption(), e);
+			if (defaultOptions != null) {
+				for (OptionProcessor option : defaultOptions) {
+					try {
+						option.process(object, option.getOption()
+								.defaultValue());
+					} catch (Exception e) {
+						throw new OptionsException(
+								"An exception was raised while trying to set the default value for option "
+										+ option.getOption(), e);
+					}
 				}
 			}
 		}
 		List<String> argsList = new LinkedList<String>();
+		// This is used to determine if all of the required options have been
+		// satisfied.
+		Set<Option> processedOptions = new HashSet<Option>();
 		// Process each argument on the command line
 		for (int idx = 0; idx < args.length; idx++) {
 			String arg = args[idx];
@@ -161,8 +169,8 @@ public class Options {
 					object = checkAndReturnTypeInstance(objects, name,
 							processor);
 					// Pass the name from the option longName value.
-					applyValue(processor.getOption().longName(), processor,
-							object, value);
+					processedOptions.add(applyValue(processor.getOption()
+							.longName(), processor, object, value));
 				} else {
 					// This can be multiple short names or an embedded name.
 					String name = arg.substring(1);
@@ -188,7 +196,8 @@ public class Options {
 								value = name.substring(1);
 							}
 						}
-						applyValue(name, processor, object, value);
+						processedOptions.add(applyValue(name, processor,
+								object, value));
 					} else {
 						String embeddedName = name.substring(0, 1);
 						processor = this.shortNames.get(embeddedName);
@@ -202,7 +211,8 @@ public class Options {
 												+ name);
 							}
 							value = name.substring(1);
-							applyValue(embeddedName, processor, object, value);
+							processedOptions.add(applyValue(embeddedName,
+									processor, object, value));
 						} else {
 							if (processor.hasValue()) {
 								idx++;
@@ -213,7 +223,8 @@ public class Options {
 								}
 								value = args[idx];
 							}
-							applyValue(embeddedName, processor, object, value);
+							processedOptions.add(applyValue(embeddedName,
+									processor, object, value));
 							// Process all short names
 							for (int innerIdx = 1; innerIdx < name.length(); innerIdx++) {
 								embeddedName = name.substring(innerIdx,
@@ -238,8 +249,8 @@ public class Options {
 									}
 									value = args[idx];
 								}
-								applyValue(embeddedName, processor, object,
-										value);
+								processedOptions.add(applyValue(embeddedName,
+										processor, object, value));
 							}
 						}
 					}
@@ -259,6 +270,7 @@ public class Options {
 				String value = arg.substring(eqIdx);
 				try {
 					processor.process(object, value);
+					processedOptions.add(processor.getOption());
 				} catch (Exception e) {
 					throw new OptionsException(
 							"An exception was thrown when processing option "
@@ -267,6 +279,35 @@ public class Options {
 			} else {
 				argsList.add(arg);
 			}
+		}
+		if (processedOptions.containsAll(requiredOptions) == false) {
+			StringBuilder message = new StringBuilder(
+					"Not all required options where included");
+			message.append("missing:");
+			// Get the list of options that were not passed.
+			for (Option option : requiredOptions) {
+				if (processedOptions.contains(option) == false) {
+					message.append('[');
+					if (option.shortName() != ' ') {
+						message.append('-').append(option.shortName());
+					}
+					if (option.longName().length() > 0) {
+						if (message.charAt(message.length() - 1) == '[') {
+							message.append('|');
+						} else {
+							message.append('[');
+						}
+						if (option.propertyValue()) {
+							message.append(option.longName())
+									.append("=<value>");
+						} else {
+							message.append("--").append(option.longName());
+						}
+					}
+					message.append(']');
+				}
+			}
+			throw new OptionsException(message.toString());
 		}
 		return argsList.toArray(new String[0]);
 	}
@@ -284,13 +325,17 @@ public class Options {
 	 *            The object that the value will be applied to
 	 * @param value
 	 *            The value that will be applied to the object
+	 * 
+	 * @return Returns the passed processor associated Option annotation
+	 * 
 	 * @throws OptionsException
 	 *             If any issues occurred when applying the value to the object
 	 */
-	private void applyValue(String name, OptionProcessor processor,
+	private Option applyValue(String name, OptionProcessor processor,
 			Object object, String value) throws OptionsException {
 		try {
 			processor.process(object, value);
+			return processor.getOption();
 		} catch (Exception e) {
 			throw new OptionsException(
 					"An exception was thrown when processing option " + name, e);
@@ -505,6 +550,9 @@ public class Options {
 					}
 
 				}.setFields(method, option));
+				if (option.required()) {
+					requiredOptions.add(option);
+				}
 			}
 		}
 	}

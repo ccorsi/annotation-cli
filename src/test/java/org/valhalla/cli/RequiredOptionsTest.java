@@ -16,22 +16,33 @@
  */
 package org.valhalla.cli;
 
-import org.valhalla.cli.annotations.Option;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Claudio Corsi
  *
  */
-public class OptionImplOne {
+public class RequiredOptionsTest extends AbstractOptionsTestSupport {
 
-	private boolean aOption;
+	private OptionImplOne object;
 
-	@Option(shortName='A', description="This is an A option", required=true)
-	public void setAOption() {
-		this.aOption = true;
+	/* (non-Javadoc)
+	 * @see org.valhalla.cli.AbstractOptionsTestSupport#getClasses()
+	 */
+	@Override
+	Class<?>[] getClasses() {
+		return new Class<?>[] { OptionImplOne.class };
 	}
 	
-	public boolean getAOption() {
-		return this.aOption;
+	@Before
+	public void createOptionImplOne() {
+		this.object = new OptionImplOne();
 	}
+	
+	@Test(expected=OptionsException.class)
+	public void missingRequiredOptionsTest() throws OptionsException {
+		this.executeOptions(new String[0], new Object[] { this.object }, new String[0]);
+	}
+
 }
