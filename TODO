@@ -8,4 +8,4 @@
 - Add more javadoc that includes a package.html file with information on how to use this library [in-progress]
 - Add an examples directory or maybe added detailed examples to the README file.
 - Add a usage method to the Options class that will print all of the option to standard options [done]
-- Update the Option annotation so that it can state that an option is required
+- Update the Option annotation so that it can state that an option is required [done]
