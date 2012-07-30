@@ -17,6 +17,8 @@
 package org.valhalla.cli;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -28,11 +30,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.valhalla.cli.annotations.Option;
+import org.valhalla.cli.annotations.OptionReference;
 
 /**
  * This is the main class used to process options that are available for a user
@@ -50,6 +56,8 @@ import org.valhalla.cli.annotations.Option;
  * 
  */
 public class Options {
+	
+	private static final Logger logger = LoggerFactory.getLogger(Options.class);
 
 	/**
 	 * This interface is used by the Options instance to convert the string
@@ -94,9 +102,52 @@ public class Options {
 	 */
 	public Options(Class<?> cliOptions[]) throws OptionsException {
 		// Process all of the classes.
-		for (Class<?> clz : cliOptions) {
+		for (Class<?> clz : findOptionClasses(cliOptions)) {
 			processCLIOptions(clz);
 		}
+	}
+
+	/**
+	 * This method will determine all classes that contain Option references.
+	 * 
+	 * @param cliOptions Array of top-level Classes with Option references
+	 * 
+	 * @return Array of classes that contain Option references
+	 */
+	private List<Class<?>> findOptionClasses(Class<?>[] cliOptions) {
+		List<Class<?>> classes = new LinkedList<Class<?>>();
+		Queue<Class<?>> moreClasses = new LinkedList<Class<?>>();
+		for(Class<? >cliOption : cliOptions) { 
+			classes.add(cliOption); 
+		}
+		moreClasses.addAll(classes);
+		
+		while (!moreClasses.isEmpty()) {
+			Class<?> clazz = moreClasses.remove();
+			for(Field field : clazz.getFields()) {
+				if (field.getAnnotation(OptionReference.class) != null) {
+					Class<?> type = field.getType();
+					logger.debug("Adding class: {} from field {}", type, field.getName());
+					// This field contains references to Options that need to be processed.
+					moreClasses.add(type);
+					classes.add(type);
+				}
+			}
+			for(Method method : clazz.getMethods()) {
+				if (method.getAnnotation(OptionReference.class) != null) {
+					Class<?> type = method.getReturnType();
+					if (!classes.contains(type)) {
+						logger.debug("Adding class: {} from method {}", type, method.getName());
+						// This method contains references to Options that need
+						// to be processed.
+						moreClasses.add(type);
+						classes.add(type);
+					}
+				}
+			}
+		}
+		
+		return classes;
 	}
 
 	/**
@@ -117,6 +168,7 @@ public class Options {
 	 */
 	public String[] processArguements(String[] args, Object[] objects)
 			throws OptionsException {
+		objects = findOptionObjects(objects);
 		// Process all default values
 		for (Object object : objects) {
 			Collection<OptionProcessor> defaultOptions = defaultValues
@@ -127,6 +179,7 @@ public class Options {
 						option.process(object, option.getOption()
 								.defaultValue());
 					} catch (Exception e) {
+						logger.error("An exception was raised while trying to set the default value for option {}", option.getOption(), e);
 						throw new OptionsException(
 								"An exception was raised while trying to set the default value for option "
 										+ option.getOption(), e);
@@ -160,6 +213,7 @@ public class Options {
 						if (processor.hasValue()) {
 							idx++;
 							if (idx == args.length) {
+								logger.error("Missing value for option {}", name);
 								throw new OptionsException(
 										"Missing value for option " + name);
 							}
@@ -182,6 +236,7 @@ public class Options {
 							if (!processor.getOption().embeddedValue()) {
 								idx++;
 								if (idx == args.length) {
+									logger.error("Missing value for option {}", name);
 									throw new OptionsException(
 											"Missing value for option " + name);
 								}
@@ -189,6 +244,7 @@ public class Options {
 							} else {
 								// The value is part of the passed option
 								if (name.length() < 2) {
+									logger.error("Missing embedded value for option {}", name);
 									throw new OptionsException(
 											"Missing embedded value for option "
 													+ name);
@@ -206,6 +262,7 @@ public class Options {
 						if (processor.getOption().embeddedValue()) {
 							// The value is part of the passed option
 							if (name.length() < 2) {
+								logger.error("Missing embedded value for option {}", name);
 								throw new OptionsException(
 										"Missing embedded value for option "
 												+ name);
@@ -217,6 +274,7 @@ public class Options {
 							if (processor.hasValue()) {
 								idx++;
 								if (idx == args.length) {
+									logger.error("Missing value for option {}", embeddedName);
 									throw new OptionsException(
 											"Missing value for option "
 													+ embeddedName);
@@ -234,6 +292,9 @@ public class Options {
 										embeddedName, processor);
 								if (processor.hasValue()) {
 									if (processor.getOption().embeddedValue()) {
+										logger.error(
+												"Embedded value not supported for embedded value when passed as multiple options command line parameter {} used as part command line options {}",
+												embeddedName, name);
 										// This is not supported
 										throw new OptionsException(
 												"Embedded value not supported for embedded value when passed as multiple options command line parameter "
@@ -243,6 +304,7 @@ public class Options {
 									}
 									idx++;
 									if (idx == args.length) {
+										logger.error("Missing value for option {}", embeddedName);
 										throw new OptionsException(
 												"Missing value for option "
 														+ embeddedName);
@@ -263,6 +325,7 @@ public class Options {
 						processor);
 				eqIdx++; // Move to the next index
 				if (eqIdx == arg.length()) {
+					logger.error("The passed option does not contain a value for option {}", name);
 					throw new OptionsException(
 							"The passed option does not contain a value for option "
 									+ name);
@@ -272,6 +335,7 @@ public class Options {
 					processor.process(object, value);
 					processedOptions.add(processor.getOption());
 				} catch (Exception e) {
+					logger.error("An exception was thrown when processing option {}", name, e);
 					throw new OptionsException(
 							"An exception was thrown when processing option "
 									+ name, e);
@@ -307,9 +371,103 @@ public class Options {
 					message.append(']');
 				}
 			}
+			logger.error(message.toString());
 			throw new OptionsException(message.toString());
 		}
 		return argsList.toArray(new String[0]);
+	}
+
+	/**
+	 * @param objects
+	 * @return
+	 */
+	private Object[] findOptionObjects(Object[] objects) {
+		Queue<Object> objectList = new LinkedList<Object>();
+		Queue<Object> moreObjects = new LinkedList<Object>();
+		for(Object object : objects) {
+			objectList.add(object);
+		}
+		moreObjects.addAll(objectList);
+		logger.debug("moreObjects: {}", moreObjects);
+		Object object;
+		while( ( object = moreObjects.poll() ) != null ) {
+			logger.debug("Processing object: {}", object);
+			Class<?> clz = object.getClass();
+			for(Field field : clz.getFields()) {
+				logger.debug("Looking at field: {}", field.getName());
+				if (field.getAnnotation(OptionReference.class) != null) {
+					try {
+						logger.debug("Found field with OptionReference: {}", field.getName());
+						Object value = field.get(object);
+						logger.debug("Returned field value: {}", value);
+						moreObjects.add(value);
+						objectList.add(value);
+					} catch (IllegalArgumentException e) {
+						logger.error(
+								"Unable to retrieve value for field: {} for class: {}",
+								new Object[] { field.getName(), clz.getName() },
+								e);
+						new OptionsException(
+								"Unable to retrieve value for field: "
+										+ field.getName() + " for class: "
+										+ clz.getName(), e);
+					} catch (IllegalAccessException e) {
+						logger.error(
+								"Unable to retrieve value for field: {} for class: {}",
+								new Object[] { field.getName(), clz.getName() },
+								e);
+						new OptionsException(
+								"Unable to retrieve value for field: "
+										+ field.getName() + " for class: "
+										+ clz.getName(), e);
+					}
+				}
+			}
+			for(Method method : clz.getMethods()) {
+				logger.debug("Looking at method: {}", method.getName());
+				if (method.getAnnotation(OptionReference.class) != null) {
+					try {
+						logger.debug("Found method with OptionReference: {}",
+								method.getName());
+						Object value = method.invoke(object);
+						if (!objectList.contains(value)) {
+							logger.debug("Returned method return value: {}",
+									value);
+							moreObjects.add(value);
+							objectList.add(value);
+						}
+					} catch (IllegalArgumentException e) {
+						logger.error(
+								"Unable to retrieve value for method: {} for class: {}",
+								new Object[] { method.getName(), clz.getName() },
+								e);
+						new OptionsException(
+								"Unable to retrieve value for method: "
+										+ method.getName() + " for class: "
+										+ clz.getName(), e);
+					} catch (IllegalAccessException e) {
+						logger.error(
+								"Unable to retrieve value for method: {} for class: {}",
+								new Object[] { method.getName(), clz.getName() },
+								e);
+						new OptionsException(
+								"Unable to retrieve value for method: "
+										+ method.getName() + " for class: "
+										+ clz.getName(), e);
+					} catch (InvocationTargetException e) {
+						logger.error(
+								"Unable to retrieve value for method: {} for class: {}",
+								new Object[] { method.getName(), clz.getName() },
+								e);
+						new OptionsException(
+								"Unable to retrieve value for method: "
+										+ method.getName() + " for class: "
+										+ clz.getName(), e);
+					}
+				}
+			}
+		}
+		return objectList.toArray();
 	}
 
 	/**
@@ -334,9 +492,12 @@ public class Options {
 	private Option applyValue(String name, OptionProcessor processor,
 			Object object, String value) throws OptionsException {
 		try {
+			logger.debug("Applying value: {} to object: {} for option: {}",
+					new Object[] { value, object, name });
 			processor.process(object, value);
 			return processor.getOption();
 		} catch (Exception e) {
+			logger.error("An exception was thrown when processing option {}", name, e);
 			throw new OptionsException(
 					"An exception was thrown when processing option " + name, e);
 		}
@@ -362,6 +523,7 @@ public class Options {
 	private Object checkAndReturnTypeInstance(Object[] objects, String name,
 			OptionProcessor processor) throws OptionsException {
 		if (processor == null) {
+			logger.error("No available option for {}", name);
 			throw new OptionsException("No available option for " + name);
 		}
 		Class<?> type = processor.forClass();
@@ -373,6 +535,7 @@ public class Options {
 			}
 		}
 		if (object == null) {
+			logger.error("No object available to set option {}", name);
 			throw new OptionsException("No object available to set option "
 					+ name);
 		}
@@ -396,6 +559,9 @@ public class Options {
 				OptionCommand command;
 				Class<?> parameterTypes[] = method.getParameterTypes();
 				if (parameterTypes.length > 1) {
+					logger.error(
+							"Invalid parameter length, allowed only none or one parameter for option class: {}",
+							clz.getName());
 					throw new OptionsException(
 							"Invalid parameter length, allowed only none or one parameter for option class: "
 									+ clz.getName());
@@ -404,6 +570,9 @@ public class Options {
 				boolean isProperty = option.propertyValue();
 				if (parameterTypes.length == 0) {
 					if (isEmbedded || isProperty) {
+						logger.error(
+								"You can not set the embedded or property type option with no-parameter method {} for class {}",
+								method.getName(), clz.getName());
 						throw new OptionsException(
 								"You can not set the embedded or property type option with no-parameter method "
 										+ method.getName()
@@ -475,6 +644,9 @@ public class Options {
 							}
 						}.setFields(method, type, clz);
 					} catch (Exception e) {
+						logger.error(
+								"An exception was raised while processing option: {} for class {}",
+								new Object[] { method.getName(), clz.getName() }, e);
 						throw new OptionsException(
 								"An exception was raised while processing option: "
 										+ method.getName() + " for class "
@@ -488,11 +660,13 @@ public class Options {
 					shortName = new String(new char[] { option.shortName() });
 					if (option.propertyValue()) {
 						if (propsNames.put(shortName, optionProcessor) != null) {
+							logger.error("Option {} is already defined", shortName);
 							throw new OptionsException("Option " + shortName
 									+ " is already defined");
 						}
 					} else {
 						if (shortNames.put(shortName, optionProcessor) != null) {
+							logger.error("Option {} is already defined", shortName);
 							throw new OptionsException("Option " + shortName
 									+ " is already defined");
 						}
@@ -502,11 +676,13 @@ public class Options {
 				if ((longName = option.longName()).length() > 0) {
 					if (option.propertyValue()) {
 						if (propsNames.put(longName, optionProcessor) != null) {
+							logger.error("Option {} is already defined", longName);
 							throw new OptionsException("Option " + longName
 									+ " is already defined");
 						}
 					} else {
 						if (longNames.put(longName, optionProcessor) != null) {
+							logger.error("Option {} is already defined", longName);
 							throw new OptionsException("Option " + longName
 									+ " is already defined");
 						}
@@ -681,6 +857,7 @@ public class Options {
 
 				};
 			} else {
+				logger.error("Unknown class type {}", type.getName());
 				throw new RuntimeException("Unknown class type "
 						+ type.getName());
 			}
