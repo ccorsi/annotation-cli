@@ -27,22 +27,58 @@ public class UsageTests extends AbstractOptionsTestSupport {
 
 	private static String lineSep = System.getProperty("line.separator");
 
+	// Set this to an empty class list to avoid a NPE during the start of the tests.
+	private Class<?>[] optionClasses = new Class<?>[0];
+
 	@Override
 	Class<?>[] getClasses() {
-		return new Class<?>[] { OptionImplOne.class, OptionImplTwo.class };
+		return optionClasses;
 	}
 
 	@Test
 	public void testUsageInfo() throws OptionsException {
+		setUpAndCreateOptions(new Class<?>[] { OptionImplOne.class, OptionImplTwo.class });
 		String expectedUsageMessage = "usage: java org.valhalla.cli.MainClass simple command line string"
 				+ lineSep
-				+ "  -A	This is an A option"
+				+ "  -A    This is an A option"
 				+ lineSep
-				+ "  --bOption[=value| value]	This is the bOption option"
+				+ "  --bOption[=value| value]    This is the bOption option"
 				+ lineSep;
 		String usageMessage = this.options.usage(MainClass.class,
 				"simple command line string");
+//		System.out.println(usageMessage);
 		Assert.assertEquals("Usage string is incorrect", expectedUsageMessage,
 				usageMessage);
+	}
+
+	@Test
+	public void testMultipleLineUsage() throws OptionsException {
+		setUpAndCreateOptions(new Class<?>[] { OptionImplOne.class,
+				OptionImplTwo.class, OptionImplThree.class });
+		String expectedUsageMessage = "usage: java org.valhalla.cli.MainClass simple command line string"
+				+ lineSep
+				+ "  -A    This is an A option"
+				+ lineSep
+				+ "  --bOption[=value| value]    This is the bOption option"
+				+ lineSep
+				+ "  -B    This is option B that will contain a description that will span multiple lines to test that the usage mechanism"
+				+ lineSep 
+				+ "    will properly display this information on the screen"
+				+ lineSep;
+		String usageMessage = this.options.usage(MainClass.class,
+				"simple command line string");
+//		System.out.println("########################");
+//		System.out.println(usageMessage);
+//		System.out.println("########################");
+//		System.out.println(expectedUsageMessage);
+//		System.out.println("########################");
+//		System.out.println("lengths [" + usageMessage.length() + " , " + expectedUsageMessage.length() + "]");
+		Assert.assertEquals("Usage string is incorrect", expectedUsageMessage,
+				usageMessage);
+	}
+	
+	private void setUpAndCreateOptions(Class<?>[] classes) throws OptionsException {
+		optionClasses = classes;
+		createOptions();
 	}
 }
