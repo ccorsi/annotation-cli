@@ -4,11 +4,11 @@
 - Create a utility class that will be used by the tests to generate the required options instance and/or Simple instance. 
   This can also be used to perform the expected assert checks by the different tests.
 - Are there other parameter types that need to be introduced? [added --option=value]
-- Improve the README file.
+- Improve the README file. [done - created a README.md instead]
 - Add more javadoc that includes a package.html file with information on how to use this library [in-progress]
 - Add an examples directory or maybe added detailed examples to the README file.
 - Add a usage method to the Options class that will print all of the option to standard options [done]
 - Update the Option annotation so that it can state that an option is required [done]
 - Update the processing of Option such that you can just pass a top-level Class which contain references to fields that have
-  options associated to it.
+  options associated to it. [done]
 - Create wiki pages that describe what this tool can do and how to use the tool. [in-progress]
