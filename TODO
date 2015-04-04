@@ -12,3 +12,4 @@
 - Update the processing of Option such that you can just pass a top-level Class which contain references to fields that have
   options associated to it. [done]
 - Create wiki pages that describe what this tool can do and how to use the tool. [in-progress]
+- Added the ability to associate a field instead of a method as a OptionReference annotation tag.
