@@ -1,12 +1,12 @@
 
 This is a simple project that allows you to define command line arguments using annotations 
-and be able to have the them set implicitly instead of explicitly by the application.  
+and be able to have them set implicitly instead of explicitly by the application.  
 
 The other objective was to be able to set multiple instances and not be relegated to a single instance.  This 
 removes the need to have the application concern itself to setting these values.
 
-The final objective was to be able to set objects besides the primitive types their wrapper classes, String and 
-atomic integer and long instances.  This is done using the class string value constructor.
+The final objective was to be able to set objects besides the primitive types and their wrapper classes, String, 
+atomic integer and long instances.  This is done using a class string value constructor.
  
 The user can start to use this tool by assigning the Option annotation to methods that you want to be part of the
 command line options.  The Option annotation provides different settings that can be defined to inform and describe
