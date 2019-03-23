@@ -14,7 +14,7 @@ how the command line option can be set and its functionality.
 
 For instance, here is an example of a method where the Option annotations has been assigned.
 
-#import org.valhalla.cli.annotations.Option;
+import org.valhalla.cli.annotations.Option;
 
 public class Main {
 
@@ -47,7 +47,7 @@ application.  You have two options on how these are integrated within your appli
 class definitions to the Options constructor or you can create public methods that return references to those instances
 and have those methods have the OptionReference annotation associated to it.  For instance,
 
-#import org.valhalla.cli.annotations.Options;
+import org.valhalla.cli.annotations.Options;
 
 public DirectoryOptions {
 
@@ -60,7 +60,7 @@ public DirectoryOptions {
   
 }
 
-#import org.valhalla.cli.annotations.OptionReference;
+import org.valhalla.cli.annotations.OptionReference;
 
 public class Main { 
 
